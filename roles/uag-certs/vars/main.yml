@@ -1,0 +1,7 @@
+---
+# vars file for uag-certs
+uag_user: admin
+uag_password: VMware1!
+uag_address: uag1.rainpole.io
+uag_cert: "{{ lookup('env','HOME') }}/.certs/uag.crt"
+uag_key: "{{ lookup('env','HOME') }}/.certs/uag.key"

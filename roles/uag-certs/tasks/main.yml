@@ -1,0 +1,37 @@
+---
+# tasks file for uag-certs
+
+- name: Get new certificate
+  set_fact:
+    new_cert: "{{ lookup('file', uag_cert) | trim | replace('\n', '')}}"
+
+- name: Get existing certificate on UAG
+  ansible.builtin.uri:
+    url: https://{{ uag_address}}:9443/rest/v1/config/certs/ssl/end_user
+    user: "{{ uag_user }}"
+    password: "{{ uag_password }}"
+    force_basic_auth: yes
+    method: GET
+    validate_certs: no
+    return_content: yes
+  register: certificate
+
+- name: Transform existing certificate
+  set_fact:
+    existing_cert: "{{ certificate.content | trim | replace('\n', '')}}"
+
+- name: Replacing certificate on UAG
+  ansible.builtin.uri:
+    url: https://{{ uag_address}}:9443/rest/v1/config/certs/ssl/end_user
+    user: "{{ uag_user }}"
+    password: "{{ uag_password }}"
+    force_basic_auth: yes
+    method: PUT
+    validate_certs: no
+    body_format: json
+    body:
+      privateKeyPem: "{{ lookup('file', uag_key ) | trim }}"
+      certChainPem: "{{ lookup('file', uag_cert ) | trim }}"
+  when: existing_cert != new_cert
+  register: response
+  changed_when: response.status == 200
